@@ -20,7 +20,7 @@ interface NavItem {
 
 // ─── Nav Data ─────────────────────────────────────────────────────────────────
 const NAV_ITEMS: NavItem[] = [
-    { label: "Home", href: "/" },
+    { label: "Home", href: "/cs" },
     {
         label: "ExCom",
         children: [
@@ -227,7 +227,7 @@ function MobileMenu({
 function IEEELogo() {
     return (
         <Link
-            href="#"
+            href="/cs"
             className="flex items-center gap-2"
             aria-label="IEEE IIUC Home"
         >
