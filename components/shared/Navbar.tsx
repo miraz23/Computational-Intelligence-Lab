@@ -20,57 +20,48 @@ interface NavItem {
 
 // ─── Nav Data ─────────────────────────────────────────────────────────────────
 const NAV_ITEMS: NavItem[] = [
-    { label: "Home", href: "/cs" },
+    { label: "Home", href: "/" },
+    { label: "News", href: "/news" },
     {
-        label: "ExCom",
+        label: "About us",
         children: [
-            { label: "ExCom 2026", href: "#" },
-            { label: "ExCom 2025", href: "#" },
-            { label: "ExCom 2024", href: "#" },
+            { label: "Introduction", href: "/about-us/introduction" },
+            { label: "Members", href: "/about-us/members" },
+            { label: "Photos", href: "/about-us/photos" },
+            { label: "Join CILab", href: "/about-us/ci-lab" },
+            { label: "Contact information", href: "/about-us/contact-information" },
         ],
     },
-    { label: "Membership & Benefits", href: "#" },
     {
-        label: "Events",
+        label: "Research",
         children: [
-            { label: "Events 2026", href: "#" },
-            { label: "Events 2025", href: "#" },
-            { label: "Events 2024", href: "#" },
+            { label: "Research area", href: "/research/research-area" },
+            { label: "Projects", href: "/research/projects" },
+            { label: "Papers", href: "/research/papers" },
         ],
     },
-    { label: "Gallery", href: "#" },
-    { label: "Contact", href: "#" },
+    {
+        label: "Lectures",
+        children: [
+            { label: "Class description", href: "/lectures/class-description" },
+            { label: "Schedule", href: "/lectures/schedule" },
+            { label: "Reference seminar schedule", href: "/lectures/reference-seminar-schedule" },
+            { label: "Reference seminar archive", href: "/lectures/reference-seminar-archive" },
+        ],
+    },
+    { label: "Board", href: "/board" },
 ];
-
-const ACCENT = "#f9a31a";
-const BG = "rgba(13,17,23,0.97)";
 
 // ─── Dropdown Menu ────────────────────────────────────────────────────────────
 function DropdownMenu({ items }: { items: NavChild[] }) {
     return (
         <div className="absolute top-full left-1/2 z-50 min-w-[200px] -translate-x-1/2 pt-2">
-            <div
-                className="overflow-hidden rounded-xl border py-1 shadow-2xl"
-                style={{
-                    background: "rgba(13,17,23,0.97)",
-                    borderColor: "rgba(249,163,26,0.18)",
-                    backdropFilter: "blur(12px)",
-                }}
-            >
-                <div className="h-px w-full" style={{ background: ACCENT, opacity: 0.6 }} />
+            <div className="overflow-hidden rounded-xl bg-[#FFFFFF]/97 py-1 shadow-2xl backdrop-blur-md">
                 {items.map((child) => (
                     <Link
                         key={child.label}
                         href={child.href}
-                        className="block px-5 py-2.5 text-sm font-medium text-neutral-300 transition-colors duration-150 hover:text-white"
-                        style={{ letterSpacing: "0.03em" }}
-                        onMouseEnter={(e) => {
-                            (e.currentTarget as HTMLAnchorElement).style.background =
-                                "rgba(249,163,26,0.10)";
-                        }}
-                        onMouseLeave={(e) => {
-                            (e.currentTarget as HTMLAnchorElement).style.background = "transparent";
-                        }}
+                        className="block px-5 py-2.5 text-sm font-medium tracking-wide text-[#1f321c] transition-colors duration-150 hover:bg-[#716f49]/10"
                     >
                         {child.label}
                     </Link>
@@ -94,28 +85,23 @@ function NavLink({ item }: { item: NavItem }) {
             {hasChildren ? (
                 <button
                     type="button"
-                    className={cn(
-                        "flex items-center gap-1 whitespace-nowrap text-sm font-semibold text-neutral-300 transition-colors duration-150 hover:text-white"
-                    )}
-                    style={{ letterSpacing: "0.04em" }}
+                    className="flex items-center gap-1 whitespace-nowrap text-sm font-semibold tracking-[0.04em] text-[#1f321c] transition-colors duration-150 hover:text-[#716f49]"
                     aria-expanded={open}
                     onClick={() => setOpen((v) => !v)}
                 >
                     {item.label}
                     <ChevronDown
                         size={14}
-                        className="transition-transform duration-200"
-                        style={{
-                            color: ACCENT,
-                            transform: open ? "rotate(180deg)" : "rotate(0deg)",
-                        }}
+                        className={cn(
+                            "text-[#1f321c] transition-transform duration-200",
+                            open && "rotate-180"
+                        )}
                     />
                 </button>
             ) : (
                 <Link
                     href={item.href ?? "#"}
-                    className="whitespace-nowrap text-sm font-semibold text-neutral-300 transition-colors duration-150 hover:text-white"
-                    style={{ letterSpacing: "0.04em" }}
+                    className="whitespace-nowrap text-sm font-semibold tracking-[0.04em] text-[#1f321c] transition-colors duration-150 hover:text-[#716f49]"
                 >
                     {item.label}
                 </Link>
@@ -127,36 +113,27 @@ function NavLink({ item }: { item: NavItem }) {
 }
 
 // ─── Mobile Menu ──────────────────────────────────────────────────────────────
-function MobileMenu({
-    open,
-    onClose,
-}: {
-    open: boolean;
-    onClose: () => void;
-}) {
+function MobileMenu({ open, onClose }: { open: boolean; onClose: () => void }) {
     const [expandedIdx, setExpandedIdx] = useState<number | null>(null);
 
     if (!open) return null;
 
     return (
-        <div
-            className="fixed inset-0 z-100 flex flex-col overflow-y-auto"
-            style={{ background: BG }}
-        >
-            {/* header row */}
+        <div className="fixed inset-0 z-100 flex flex-col overflow-y-auto bg-[#FFFFFF]">
+            {/* Header row */}
             <div className="flex items-center justify-between px-5 py-4">
-                <IEEELogo />
+                <ComputationalIntelligenceLabLogo /> 
                 <button
                     type="button"
                     onClick={onClose}
-                    className="rounded-lg p-2 text-neutral-400 hover:text-white"
+                    className="rounded-lg p-2 text-[#1f321c] hover:text-[#716f49]"
                     aria-label="Close menu"
                 >
                     <X size={22} />
                 </button>
             </div>
 
-            <div className="h-px w-full" style={{ background: "rgba(249,163,26,0.25)" }} />
+            <div className="h-px w-full bg-[#1f321c]/25" />
 
             <nav className="flex flex-col gap-1 px-4 py-4">
                 {NAV_ITEMS.map((item, idx) => (
@@ -165,30 +142,26 @@ function MobileMenu({
                             <>
                                 <button
                                     type="button"
-                                    className="flex w-full items-center justify-between px-3 py-3 text-left text-base font-semibold text-neutral-200 hover:text-white"
-                                    onClick={() =>
-                                        setExpandedIdx(expandedIdx === idx ? null : idx)
-                                    }
+                                    className="flex w-full items-center justify-between px-3 py-3 text-left text-base font-semibold text-[#1f321c] hover:text-[#716f49]"
+                                    onClick={() => setExpandedIdx(expandedIdx === idx ? null : idx)}
                                 >
                                     {item.label}
                                     <ChevronDown
                                         size={16}
-                                        style={{
-                                            color: ACCENT,
-                                            transform:
-                                                expandedIdx === idx ? "rotate(180deg)" : "rotate(0deg)",
-                                            transition: "transform 0.2s",
-                                        }}
+                                        className={cn(
+                                            "text-[#1f321c] transition-transform duration-200",
+                                            expandedIdx === idx && "rotate-180"
+                                        )}
                                     />
                                 </button>
                                 {expandedIdx === idx && (
-                                    <div className="ml-4 flex flex-col gap-0.5 border-l pl-3" style={{ borderColor: "rgba(249,163,26,0.3)" }}>
+                                    <div className="ml-4 flex flex-col gap-0.5 border-l border-[#716f49]/30 pl-3">
                                         {item.children.map((child) => (
                                             <Link
                                                 key={child.label}
                                                 href={child.href}
                                                 onClick={onClose}
-                                                className="py-2.5 text-sm font-medium text-neutral-400 hover:text-white"
+                                                className="py-2.5 text-sm font-medium text-[#1f321c] hover:text-[#716f49]"
                                             >
                                                 {child.label}
                                             </Link>
@@ -200,7 +173,7 @@ function MobileMenu({
                             <Link
                                 href={item.href ?? "#"}
                                 onClick={onClose}
-                                className="block px-3 py-3 text-base font-semibold text-neutral-200 hover:text-white"
+                                className="block px-3 py-3 text-base font-semibold text-[#1f321c] hover:text-[#716f49]"
                             >
                                 {item.label}
                             </Link>
@@ -213,10 +186,9 @@ function MobileMenu({
                 <Link
                     href="#"
                     onClick={onClose}
-                    className="block w-full rounded-full py-3 text-center text-sm font-bold text-white"
-                    style={{ background: ACCENT, letterSpacing: "0.05em" }}
+                    className="block w-full rounded-full bg-[#1f321c] py-3 text-center text-sm font-bold tracking-wider text-white"
                 >
-                    IEEE IIUC SBC
+                    Login
                 </Link>
             </div>
         </div>
@@ -224,17 +196,13 @@ function MobileMenu({
 }
 
 // ─── Logo ─────────────────────────────────────────────────────────────────────
-function IEEELogo() {
+function ComputationalIntelligenceLabLogo() {
     return (
-        <Link
-            href="/cs"
-            className="flex items-center gap-2"
-            aria-label="IEEE IIUC Home"
-        >
+        <Link href="/" className="flex items-center gap-2" aria-label="Computational Intelligence Lab Home">
             <Image
-                src="/logos/logo.png" // put your actual path
-                alt="IEEE IIUC Logo"
-                width={120}
+                src="/logos/logo.png"
+                alt="Computational Intelligence Lab Logo"
+                width={150}
                 height={60}
                 priority
             />
@@ -253,7 +221,6 @@ export default function Navbar() {
         return () => window.removeEventListener("scroll", onScroll);
     }, []);
 
-    // prevent body scroll when mobile menu open
     useEffect(() => {
         document.body.style.overflow = mobileOpen ? "hidden" : "";
         return () => { document.body.style.overflow = ""; };
@@ -263,21 +230,15 @@ export default function Navbar() {
         <>
             <header
                 className={cn(
-                    "fixed top-0 left-0 right-0 z-50 transition-all duration-300",
+                    "fixed left-0 right-0 top-0 z-50 transition-all duration-300",
                     scrolled
-                        ? "border-b shadow-lg"
-                        : "border-b border-transparent"
+                        ? "border-b border-[#f9a31a]/15 shadow-lg backdrop-blur-xl"
+                        : "border-b border-transparent bg-transparent"
                 )}
-                style={{
-                    background: scrolled
-                        ? "rgba(13,17,23,0.92)"
-                        : "transparent",
-                    borderColor: scrolled ? "rgba(249,163,26,0.15)" : "transparent",
-                }}
             >
-                <nav className="relative mx-auto flex py-4 max-w-7xl items-center justify-between px-5">
+                <nav className="relative mx-auto flex max-w-7xl items-center justify-between px-5 py-4">
                     {/* Logo */}
-                    <IEEELogo />
+                    <ComputationalIntelligenceLabLogo />
 
                     {/* Desktop Nav Links */}
                     <ul className="hidden items-center gap-6 lg:flex xl:gap-8">
@@ -288,21 +249,13 @@ export default function Navbar() {
                         ))}
                     </ul>
 
-                    {/* IEEE Portal CTA */}
+                    {/* CTA */}
                     <div className="hidden items-center lg:flex">
                         <Link
                             href="#"
-                            className="group inline-flex items-center gap-2.5 rounded-full border px-5 py-2 text-sm font-semibold text-white transition-all duration-200 hover:-translate-y-0.5 hover:scale-[1.02] active:translate-y-0 active:scale-[0.98]"
-                            style={{
-                                background:
-                                    "linear-gradient(135deg, rgba(249,163,26,0.95), rgba(249,163,26,0.78))",
-                                borderColor: "rgba(255,255,255,0.18)",
-                                letterSpacing: "0.06em",
-                                boxShadow:
-                                    "0 12px 30px rgba(249,163,26,0.28), inset 0 1px 0 rgba(255,255,255,0.22)",
-                            }}
+                            className="group inline-flex items-center gap-2.5 rounded-full border border-white/20 bg-linear-to-br from-[#716f49]/95 to-[#1f321c]/80 px-5 py-2 text-sm font-semibold tracking-[0.06em] text-white shadow-[0_12px_30px_rgba(31,50,28,0.35),0_4px_12px_rgba(113,111,73,0.25),inset_0_1px_0_rgba(255,255,255,0.22)] transition-all duration-200 hover:-translate-y-0.5 hover:scale-[1.02] active:translate-y-0 active:scale-[0.98]"
                         >
-                            IEEE IIUC SBC
+                            Login
                             <ArrowUpRight
                                 size={15}
                                 className="transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
@@ -314,7 +267,7 @@ export default function Navbar() {
                     {/* Mobile hamburger */}
                     <button
                         type="button"
-                        className="flex items-center justify-center rounded-lg p-2 text-neutral-300 hover:text-white lg:hidden"
+                        className="flex items-center justify-center rounded-lg p-2 text-[#1f321c] hover:text-[#716f49] lg:hidden"
                         onClick={() => setMobileOpen(true)}
                         aria-label="Open menu"
                     >
@@ -323,13 +276,9 @@ export default function Navbar() {
                 </nav>
 
                 {/* Bottom accent line */}
-                <div
-                    className="h-px w-full"
-                    style={{ background: "linear-gradient(90deg, transparent, rgba(249,163,26,0.4) 40%, rgba(249,163,26,0.4) 60%, transparent)" }}
-                />
+                <div className="h-px w-full bg-linear-to-r from-transparent via-[#716f49]/40 to-transparent" />
             </header>
 
-            {/* Mobile Menu */}
             <MobileMenu open={mobileOpen} onClose={() => setMobileOpen(false)} />
         </>
     );
