@@ -27,8 +27,8 @@ interface BinaryBit {
 }
 
 // ─── Constants ────────────────────────────────────────────────────────────────
-const PARTICLE_COLOR = "rgba(100, 116, 139,";   // slate-500 — visible on white
-const LINK_COLOR = "rgba(148, 163, 184,";   // slate-400
+const PARTICLE_COLOR = "rgba(113, 111, 73,";   // slate-500 — visible on white
+const LINK_COLOR = "rgba(113, 111, 73,";   // slate-400
 const BG_COLOR = "#f8fafc";               // slate-50
 
 const MOBILE_CANVAS_MAX = 640;
