@@ -35,8 +35,8 @@ const MOBILE_CANVAS_MAX = 640;
 
 // ─── Stats data ───────────────────────────────────────────────────────────────
 const STATS = [
-  { value: 50000, suffix: "+", label: "Research Papers" },
-  { value: 120, suffix: "+", label: "Journals Indexed" },
+  { value: 100, suffix: "+", label: "Research Papers" },
+  { value: 50, suffix: "+", label: "Journals Indexed" },
   { value: 30, suffix: "+", label: "Active Researchers" },
 ];
 
@@ -345,15 +345,14 @@ export default function Banner() {
       <div className="relative z-10 mx-auto w-full max-w-3xl px-5 py-28 text-center sm:px-8 sm:py-32">
 
         {/* Headline */}
-        <h1 className="mb-4 text-3xl font-extrabold leading-tight tracking-tight text-slate-900 sm:text-5xl md:text-6xl">
-          Discover the world of{" "}
-          <span className="text-[#716f49]">Scientific Literature</span>
+        <h1 className="mb-4 text-3xl font-extrabold leading-tight tracking-tight text-slate-900 sm:text-5xl">
+          Advance the Frontiers of{" "}
+          <span className="text-[#716f49]">Computational Intelligence</span>
         </h1>
 
         {/* Sub-headline */}
         <p className="mx-auto mb-10 max-w-xl text-base leading-relaxed text-slate-500 sm:text-lg">
-          Search thousands of research papers, journals, and conference
-          proceedings — all in one place.
+          The central hub for our research community to share papers, archive weekly presentations, and collaborate <br className="hidden sm:block"/> on cutting-edge innovations.
         </p>
 
         {/* Search bar */}
@@ -368,7 +367,7 @@ export default function Banner() {
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search by keyword, author, DOI, PubMed ID or arXiv ID…"
+            placeholder="Search by keyword, author, DOI…"
             className="flex-1 bg-transparent px-4 py-4 text-sm text-slate-800 placeholder:text-slate-400 outline-none sm:text-base"
           />
           <button
