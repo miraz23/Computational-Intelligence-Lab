@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useRef } from "react";
-import Link from "next/link";
-import { ArrowRight } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { Search } from "lucide-react";
+import CountUp from "react-countup";
+import { useInView } from "react-intersection-observer";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface Particle {
@@ -26,11 +27,18 @@ interface BinaryBit {
 }
 
 // ─── Constants ────────────────────────────────────────────────────────────────
-const PARTICLE_COLOR = "rgba(249, 163, 26,";
-const LINK_COLOR = "rgba(249, 163, 26,";
-const BG_COLOR = "#0d1117";
+const PARTICLE_COLOR = "rgba(113, 111, 73,";   // slate-500 — visible on white
+const LINK_COLOR = "rgba(113, 111, 73,";   // slate-400
+const BG_COLOR = "#f8fafc";               // slate-50
 
 const MOBILE_CANVAS_MAX = 640;
+
+// ─── Stats data ───────────────────────────────────────────────────────────────
+const STATS = [
+  { value: 50000, suffix: "+", label: "Research Papers" },
+  { value: 120, suffix: "+", label: "Journals Indexed" },
+  { value: 30, suffix: "+", label: "Active Researchers" },
+];
 
 type ParticleConfig = {
   count: number;
@@ -53,36 +61,38 @@ function getParticleConfig(width: number): ParticleConfig {
     return {
       count: 46,
       linkDistance: 116,
-      linkOpacityMax: 0.3,
+      linkOpacityMax: 0.35,
       mouseLinkOpacityMax: 0.62,
       mouseLinkMaxDist: 148,
-      linkLineWidth: 0.62,
-      dotOpacity: 0.62,
+      linkLineWidth: 0.7,
+      dotOpacity: 0.55,
       radiusMin: 1,
       radiusMax: 2.2,
-      speed: 0.45,
+      speed: 0.35,
       repulseRadius: 90,
-      bitCount: 50,
+      bitCount: 0, // hide bits on mobile for cleanliness
     };
   }
   return {
     count: 80,
-    linkDistance: 150,
-    linkOpacityMax: 0.48,
-    mouseLinkOpacityMax: 0.78,
+    linkDistance: 160,
+    linkOpacityMax: 0.45,
+    mouseLinkOpacityMax: 0.75,
     mouseLinkMaxDist: 180,
-    linkLineWidth: 0.8,
-    dotOpacity: 0.75,
-    radiusMin: 1.5,
-    radiusMax: 3,
-    speed: 0.8,
+    linkLineWidth: 0.9,
+    dotOpacity: 0.7,
+    radiusMin: 2,
+    radiusMax: 4,
+    speed: 0.5,
     repulseRadius: 120,
-    bitCount: 90,
+    bitCount: 0, // no binary bits — cleaner academic look
   };
 }
 
 // ─── Hook: canvas particle animation ─────────────────────────────────────────
-function useParticleCanvas(canvasRef: React.RefObject<HTMLCanvasElement | null>) {
+function useParticleCanvas(
+  canvasRef: React.RefObject<HTMLCanvasElement | null>
+) {
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -101,7 +111,6 @@ function useParticleCanvas(canvasRef: React.RefObject<HTMLCanvasElement | null>)
     const seedParticles = () => {
       cfg = getParticleConfig(canvas.width);
 
-      // Particles
       particles = Array.from({ length: cfg.count }, () => ({
         x: Math.random() * canvas.width,
         y: Math.random() * canvas.height,
@@ -110,14 +119,13 @@ function useParticleCanvas(canvasRef: React.RefObject<HTMLCanvasElement | null>)
         radius: Math.random() * (cfg.radiusMax - cfg.radiusMin) + cfg.radiusMin,
       }));
 
-      // Scattered binary bits
       bits = Array.from({ length: cfg.bitCount }, () => ({
         x: Math.random() * canvas.width,
         y: Math.random() * canvas.height,
         vx: (Math.random() - 0.5) * 0.35,
         vy: (Math.random() - 0.5) * 0.35,
         char: Math.random() > 0.5 ? "1" : "0",
-        opacity: Math.random() * 0.22 + 0.07,
+        opacity: Math.random() * 0.18 + 0.05,
         size: Math.floor(Math.random() * 5 + 10),
         flipTimer: 0,
         flipInterval: Math.floor(Math.random() * 300 + 120),
@@ -135,17 +143,18 @@ function useParticleCanvas(canvasRef: React.RefObject<HTMLCanvasElement | null>)
     resize();
     window.addEventListener("resize", resize);
 
-    // Mouse tracking
     const onMouseMove = (e: MouseEvent) => {
       const rect = canvas.getBoundingClientRect();
       mouseX = e.clientX - rect.left;
       mouseY = e.clientY - rect.top;
     };
-    const onMouseLeave = () => { mouseX = -9999; mouseY = -9999; };
+    const onMouseLeave = () => {
+      mouseX = -9999;
+      mouseY = -9999;
+    };
     canvas.addEventListener("mousemove", onMouseMove);
     canvas.addEventListener("mouseleave", onMouseLeave);
 
-    // Click: push particles away
     const onClick = (e: MouseEvent) => {
       const rect = canvas.getBoundingClientRect();
       const cx = e.clientX - rect.left;
@@ -162,42 +171,34 @@ function useParticleCanvas(canvasRef: React.RefObject<HTMLCanvasElement | null>)
     };
     canvas.addEventListener("click", onClick);
 
-    // Draw loop
     const draw = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      // ── Scattered binary bits (drawn first, behind everything) ──
+      // bits (none by default now, but kept for future use)
       bits.forEach((b) => {
         b.x += b.vx;
         b.y += b.vy;
-
-        // Wrap around edges
         if (b.x < -20) b.x = canvas.width + 20;
         if (b.x > canvas.width + 20) b.x = -20;
         if (b.y < -20) b.y = canvas.height + 20;
         if (b.y > canvas.height + 20) b.y = -20;
-
-        // Occasionally flip between 0 and 1
         b.flipTimer++;
         if (b.flipTimer >= b.flipInterval) {
           b.flipTimer = 0;
           b.char = b.char === "1" ? "0" : "1";
           b.flipInterval = Math.floor(Math.random() * 300 + 120);
         }
-
         ctx.font = `${b.size}px monospace`;
         ctx.fillStyle = `${PARTICLE_COLOR}${b.opacity})`;
         ctx.fillText(b.char, b.x, b.y);
       });
 
-      // ── Update & bounce particles ──
+      // update particles
       particles.forEach((p) => {
         p.x += p.vx;
         p.y += p.vy;
         if (p.x < 0 || p.x > canvas.width) p.vx *= -1;
         if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
-
-        // Clamp speed after mouse interaction
         const speed = Math.sqrt(p.vx * p.vx + p.vy * p.vy);
         if (speed > cfg.speed * 20) {
           p.vx = (p.vx / speed) * cfg.speed * 50;
@@ -205,13 +206,12 @@ function useParticleCanvas(canvasRef: React.RefObject<HTMLCanvasElement | null>)
         }
       });
 
-      // ── Draw links ──
+      // links
       for (let i = 0; i < particles.length; i++) {
         for (let j = i + 1; j < particles.length; j++) {
           const dx = particles[i].x - particles[j].x;
           const dy = particles[i].y - particles[j].y;
           const dist = Math.sqrt(dx * dx + dy * dy);
-
           if (dist < cfg.linkDistance) {
             const opacity = (1 - dist / cfg.linkDistance) * cfg.linkOpacityMax;
             ctx.beginPath();
@@ -223,7 +223,6 @@ function useParticleCanvas(canvasRef: React.RefObject<HTMLCanvasElement | null>)
           }
         }
 
-        // Mouse grab links
         const mdx = particles[i].x - mouseX;
         const mdy = particles[i].y - mouseY;
         const mDist = Math.sqrt(mdx * mdx + mdy * mdy);
@@ -239,7 +238,7 @@ function useParticleCanvas(canvasRef: React.RefObject<HTMLCanvasElement | null>)
         }
       }
 
-      // ── Draw dots ──
+      // dots
       particles.forEach((p) => {
         ctx.beginPath();
         ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
@@ -262,10 +261,65 @@ function useParticleCanvas(canvasRef: React.RefObject<HTMLCanvasElement | null>)
   }, [canvasRef]);
 }
 
+// ─── Stats Row Component ──────────────────────────────────────────────────────
+function StatsRow() {
+  const { ref, inView } = useInView({ triggerOnce: true, threshold: 0.3 });
+
+  return (
+    <div
+      ref={ref}
+      className="mt-14 flex flex-wrap items-center justify-center gap-8 text-center"
+    >
+      {STATS.map(({ value, suffix, label }) => (
+        <div key={label} className="flex flex-col items-center">
+          <span className="text-2xl font-extrabold text-[#716f49] sm:text-3xl">
+            {inView ? (
+              <CountUp
+                start={0}
+                end={value}
+                duration={2.4}
+                separator=","
+                suffix={suffix}
+                useEasing
+                easingFn={(t, b, c, d) => {
+                  // ease-out-expo
+                  return t === d ? b + c : c * (-Math.pow(2, (-10 * t) / d) + 1) + b;
+                }}
+              />
+            ) : (
+              `0${suffix}`
+            )}
+          </span>
+          <span className="mt-0.5 text-xs text-[#716f49]">{label}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ─── Sample suggestion chips ──────────────────────────────────────────────────
+const SUGGESTIONS = [
+  "Machine Learning",
+  "Neural Networks",
+  "Cybersecurity",
+  "Blockchain",
+  "Computer Vision",
+  "Natural Language Processing",
+];
+
 // ─── Component ────────────────────────────────────────────────────────────────
 export default function Banner() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   useParticleCanvas(canvasRef);
+
+  const [query, setQuery] = useState("");
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!query.trim()) return;
+    // TODO: wire up to your search route
+    console.log("Search:", query);
+  };
 
   return (
     <section
@@ -273,45 +327,75 @@ export default function Banner() {
       style={{ backgroundColor: BG_COLOR }}
     >
       {/* Particle canvas */}
-      <div
-        className="absolute inset-0 opacity-100 max-sm:opacity-[0.92]"
-        aria-hidden
-      >
+      <div className="absolute inset-0" aria-hidden>
         <canvas ref={canvasRef} className="h-full w-full" />
       </div>
 
-      {/* Calm the busy network behind copy on narrow viewports */}
+      {/* Subtle radial vignette so text centre feels grounded */}
       <div
-        className="pointer-events-none absolute inset-0 z-1 bg-[radial-gradient(ellipse_95%_80%_at_50%_45%,rgba(13,17,23,0.56)_0%,rgba(13,17,23,0.12)_50%,transparent_75%)] sm:hidden"
+        className="pointer-events-none absolute inset-0"
+        style={{
+          background:
+            "radial-gradient(ellipse 80% 60% at 50% 45%, rgba(248,250,252,0.72) 0%, rgba(248,250,252,0.10) 60%, transparent 100%)",
+        }}
         aria-hidden
       />
 
       {/* Hero content */}
-      <div className="relative z-10 mx-auto max-w-3xl px-5 py-24 text-center sm:px-6 sm:py-20">
-        <h1
-          className="mb-4 mt-2 text-3xl font-bold leading-snug tracking-wide text-white sm:mb-0 sm:mt-0 sm:text-4xl sm:leading-tight md:text-5xl"
-        >
-          IEEE COMPUTER SOCIETY
+      <div className="relative z-10 mx-auto w-full max-w-3xl px-5 py-28 text-center sm:px-8 sm:py-32">
+
+        {/* Headline */}
+        <h1 className="mb-4 text-3xl font-extrabold leading-tight tracking-tight text-slate-900 sm:text-5xl md:text-6xl">
+          Discover the world of{" "}
+          <span className="text-[#716f49]">Scientific Literature</span>
         </h1>
 
-        <p
-          className="mb-6 text-2xl font-bold leading-snug tracking-wide text-[#f9a31a] sm:mb-5 sm:text-3xl md:text-4xl"
-        >
-          IIUC Student Branch Chapter
+        {/* Sub-headline */}
+        <p className="mx-auto mb-10 max-w-xl text-base leading-relaxed text-slate-500 sm:text-lg">
+          Search thousands of research papers, journals, and conference
+          proceedings — all in one place.
         </p>
 
-        <p className="mb-10 mx-auto max-w-xl text-sm leading-relaxed text-neutral-300 sm:mb-9 sm:max-w-none sm:text-base sm:text-neutral-400">
-          Innovating the future through code, community, and collaboration by empowering the next generation of computing professionals with the technical mastery and leadership skills needed to drive the global digital revolution.
-        </p>
-
-        {/* CTA Button */}
-        <Link
-          href="#"
-          className="inline-flex items-center gap-2 rounded-full bg-[#f9a31a] px-8 py-3 text-base font-semibold text-white transition-transform hover:scale-105 active:scale-95"
+        {/* Search bar */}
+        <form
+          onSubmit={handleSearch}
+          className="mx-auto mb-6 flex w-full max-w-2xl overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xl shadow-slate-200/60 focus-within:border-[#716f49]/60 focus-within:ring-4 focus-within:ring-[#716f49]/15 transition-all duration-200"
         >
-          Explore
-          <ArrowRight size={18} strokeWidth={2.25} aria-hidden />
-        </Link>
+          <span className="flex items-center pl-5 text-slate-400">
+            <Search size={20} />
+          </span>
+          <input
+            type="text"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Search by keyword, author, DOI, PubMed ID or arXiv ID…"
+            className="flex-1 bg-transparent px-4 py-4 text-sm text-slate-800 placeholder:text-slate-400 outline-none sm:text-base"
+          />
+          <button
+            type="submit"
+            className="m-1.5 rounded-xl bg-[#716f49] px-6 py-2.5 text-sm font-semibold text-white transition-all hover:bg-[#1f321c] active:scale-95 cursor-pointer"
+          >
+            Search
+          </button>
+        </form>
+
+        {/* Suggestion chips */}
+        <div className="flex flex-wrap items-center justify-center gap-2">
+          <span className="text-xs text-[#1f321c]">Try:</span>
+          {SUGGESTIONS.map((s) => (
+            <button
+              key={s}
+              type="button"
+              onClick={() => setQuery(s)}
+              className="rounded-full border border-slate-200 bg-white/80 px-3 py-1 text-xs font-medium text-slate-600 backdrop-blur-sm transition-colors hover:border-[#716f49]/50 hover:bg-[#716f49]/8 hover:text-[#1f321c]"
+            >
+              {s}
+            </button>
+          ))}
+        </div>
+
+        {/* Stats row */}
+        <StatsRow />
       </div>
     </section>
   );
