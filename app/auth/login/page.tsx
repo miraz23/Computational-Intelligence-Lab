@@ -2,35 +2,22 @@
 
 import { useState, useCallback } from "react";
 import type { ChangeEvent, FormEvent } from "react";
-import { Loader2, CheckCircle2, User, Mail, KeyRound, Hash, Building2, Eye, EyeOff } from "lucide-react";
+import { Loader2, CheckCircle2, Mail, KeyRound, Eye, EyeOff } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from "@/components/ui/select";
-import { RegisterApiError, submitRegisterApplication } from "@/lib/api/auth/register";
-import { ACADEMIC_ROLES, type RegisterFormData, type RegisterFormErrors, type RegisterTextField, type AcademicRole, } from "@/lib/types/auth/register";
+import { LoginApiError, submitLoginApplication } from "@/lib/api/auth/login";
+import type { LoginFormData, LoginFormErrors, LoginTextField } from "@/lib/types/auth/login";
 import Link from "next/link";
 import { motion } from "motion/react";
 
-const initialFormData: RegisterFormData = {
-    name: "",
+const initialFormData: LoginFormData = {
     email: "",
     password: "",
-    scholarId: "",
-    institution: "",
-    role: "",
 };
 
-function validate(data: RegisterFormData): RegisterFormErrors {
-    const errors: RegisterFormErrors = {};
-
-    if (!data.name.trim()) errors.name = "Name is required.";
+function validate(data: LoginFormData): LoginFormErrors {
+    const errors: LoginFormErrors = {};
 
     if (!data.email.trim()) {
         errors.email = "Email is required.";
@@ -40,39 +27,27 @@ function validate(data: RegisterFormData): RegisterFormErrors {
 
     if (!data.password) {
         errors.password = "Password is required.";
-    } else if (data.password.length < 8) {
-        errors.password = "Password must be at least 8 characters.";
     }
-
-    if (!data.scholarId.trim()) errors.scholarId = "Scholar ID is required.";
-    if (!data.institution.trim()) errors.institution = "Institution / organization is required.";
-    if (!data.role) errors.role = "Please select your current role.";
 
     return errors;
 }
 
-export default function RegisterForm() {
-    const [formData, setFormData] = useState<RegisterFormData>(initialFormData);
-    const [errors, setErrors] = useState<RegisterFormErrors>({});
+export default function LoginForm() {
+    const [formData, setFormData] = useState<LoginFormData>(initialFormData);
+    const [errors, setErrors] = useState<LoginFormErrors>({});
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [submitError, setSubmitError] = useState<string | null>(null);
     const [isSuccess, setIsSuccess] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
 
     const handleTextChange = useCallback(
-        (field: RegisterTextField) => (event: ChangeEvent<HTMLInputElement>) => {
+        (field: LoginTextField) => (event: ChangeEvent<HTMLInputElement>) => {
             const { value } = event.target;
             setFormData((prev) => ({ ...prev, [field]: value }));
             setErrors((prev) => ({ ...prev, [field]: undefined }));
         },
         []
     );
-
-    const handleRoleChange = useCallback((value: string | null) => {
-        if (!value) return;
-        setFormData((prev) => ({ ...prev, role: value as AcademicRole }));
-        setErrors((prev) => ({ ...prev, role: undefined }));
-    }, []);
 
     const handleSubmit = useCallback(
         async (event: FormEvent<HTMLFormElement>) => {
@@ -81,22 +56,18 @@ export default function RegisterForm() {
 
             const validationErrors = validate(formData);
             setErrors(validationErrors);
-            if (Object.keys(validationErrors).length > 0 || !formData.role) return;
+            if (Object.keys(validationErrors).length > 0) return;
 
             setIsSubmitting(true);
             try {
-                await submitRegisterApplication({
-                    name: formData.name,
+                await submitLoginApplication({
                     email: formData.email,
                     password: formData.password,
-                    scholarId: formData.scholarId,
-                    institution: formData.institution,
-                    role: formData.role,
                 });
                 setIsSuccess(true);
             } catch (error) {
                 const message =
-                    error instanceof RegisterApiError ? error.message : "Something went wrong. Please try again.";
+                    error instanceof LoginApiError ? error.message : "Something went wrong. Please try again.";
                 setSubmitError(message);
             } finally {
                 setIsSubmitting(false);
@@ -109,12 +80,11 @@ export default function RegisterForm() {
         <section className="relative isolate overflow-hidden bg-[#F8FAFC] px-4 py-32 sm:px-6 font-montserrat">
             <div className="relative mx-auto max-w-3xl text-center">
                 <h1 className="mt-6 text-4xl font-bold tracking-tight text-slate-900 sm:text-5xl">
-                    Create your <span className="text-[#716f49]">researcher account</span>
+                    Welcome <span className="text-[#716f49]">back</span>
                 </h1>
 
                 <p className="mx-auto mt-4 max-w-2xl text-sm leading-relaxed text-neutral-400 sm:text-base">
-                    Publish, discover, and collaborate on research. Whether you&apos;re a student, faculty, or
-                    industry researcher, your account connects you to the community.
+                    Sign in to publish, discover, and collaborate on research with the community.
                 </p>
             </div>
 
@@ -147,32 +117,13 @@ export default function RegisterForm() {
                         {isSuccess ? (
                             <div className="flex min-h-[480px] flex-col items-center justify-center text-center">
                                 <CheckCircle2 className="h-12 w-12 text-emerald-400" />
-                                <h2 className="mt-4 text-xl font-semibold text-white">Account created</h2>
+                                <h2 className="mt-4 text-xl font-semibold text-white">Logged in</h2>
                                 <p className="mt-2 max-w-sm text-sm text-neutral-400">
-                                    Welcome aboard. You can now sign in and complete your researcher profile.
+                                    Welcome back. Redirecting you to your dashboard.
                                 </p>
                             </div>
                         ) : (
                             <form onSubmit={handleSubmit} noValidate className="space-y-5">
-                                <div>
-                                    <Label htmlFor="name" className="text-slate-900">
-                                        Name <span className="text-red-400">*</span>
-                                    </Label>
-                                    <div className="relative mt-1.5">
-                                        <User className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-neutral-500 pointer-events-none" />
-
-                                        <Input
-                                            id="name"
-                                            placeholder="Jane Smith"
-                                            value={formData.name}
-                                            onChange={handleTextChange("name")}
-                                            className="w-full h-10 pl-11 pr-4 py-3 bg-[#dddbd8] border-2 border-white rounded-lg focus:outline-none focus:ring-2 focus:ring-[#716f49] text-[#707070] font-medium shadow-[0px_3px_4px_2px_#564F5C33]"
-                                            aria-invalid={Boolean(errors.name)}
-                                        />
-                                    </div>
-                                    {errors.name && <p className="mt-1 text-xs text-red-400">{errors.name}</p>}
-                                </div>
-
                                 <div>
                                     <Label htmlFor="email" className="text-slate-900">
                                         Email <span className="text-red-400">*</span>
@@ -194,14 +145,14 @@ export default function RegisterForm() {
 
                                 <div>
                                     <Label htmlFor="password" className="text-slate-900">
-                                        Create Password <span className="text-red-400">*</span>
+                                        Password <span className="text-red-400">*</span>
                                     </Label>
                                     <div className="relative mt-1.5">
                                         <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-neutral-500 pointer-events-none" />
                                         <Input
                                             id="password"
                                             type={showPassword ? "text" : "password"}
-                                            placeholder="At least 8 characters"
+                                            placeholder="Your password"
                                             value={formData.password}
                                             onChange={handleTextChange("password")}
                                             className="w-full h-10 pl-11 pr-4 py-3 bg-[#dddbd8] border-2 border-white rounded-lg focus:outline-none focus:ring-2 focus:ring-[#716f49] text-[#707070] font-medium shadow-[0px_3px_4px_2px_#564F5C33]"
@@ -219,67 +170,13 @@ export default function RegisterForm() {
                                     {errors.password && <p className="mt-1 text-xs text-red-400">{errors.password}</p>}
                                 </div>
 
-                                <div className="grid gap-5 grid-cols-1">
-                                    <div>
-                                        <Label htmlFor="scholarId" className="text-slate-900">
-                                            Scholar ID <span className="text-red-400">*</span>
-                                        </Label>
-                                        <div className="relative mt-1.5">
-                                            <Hash className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-neutral-500 pointer-events-none" />
-                                            <Input
-                                                id="scholarId"
-                                                placeholder="e.g. 0000-0002-1825-0097"
-                                                value={formData.scholarId}
-                                                onChange={handleTextChange("scholarId")}
-                                                className="w-full h-10 pl-11 pr-4 py-3 bg-[#dddbd8] border-2 border-white rounded-lg focus:outline-none focus:ring-2 focus:ring-[#716f49] text-[#707070] font-medium shadow-[0px_3px_4px_2px_#564F5C33]"
-                                                aria-invalid={Boolean(errors.scholarId)}
-                                            />
-                                        </div>
-                                        {errors.scholarId && <p className="mt-1 text-xs text-red-400">{errors.scholarId}</p>}
-                                    </div>
-
-                                    <div>
-                                        <Label htmlFor="institution" className="text-slate-900">
-                                            Institution / Organization <span className="text-red-400">*</span>
-                                        </Label>
-                                        <div className="relative mt-1.5">
-                                            <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-neutral-500 pointer-events-none" />
-                                            <Input
-                                                id="institution"
-                                                placeholder="IIUC"
-                                                value={formData.institution}
-                                                onChange={handleTextChange("institution")}
-                                                className="w-full h-10 pl-11 pr-4 py-3 bg-[#dddbd8] border-2 border-white rounded-lg focus:outline-none focus:ring-2 focus:ring-[#716f49] text-[#707070] font-medium shadow-[0px_3px_4px_2px_#564F5C33]"
-                                                aria-invalid={Boolean(errors.institution)}
-                                            />
-                                        </div>
-                                        {errors.institution && (
-                                            <p className="mt-1 text-xs text-red-400">{errors.institution}</p>
-                                        )}
-                                    </div>
-                                </div>
-
-                                <div>
-                                    <Label htmlFor="role" className="text-slate-900">
-                                        Current Role <span className="text-red-400">*</span>
-                                    </Label>
-                                    <Select value={formData.role} onValueChange={handleRoleChange}>
-                                        <SelectTrigger
-                                            id="role"
-                                            className="mt-1.5 w-full p-4 bg-[#dddbd8] border-2 border-white rounded-lg focus:outline-none focus:ring-2 focus:ring-[#716f49] text-[#707070] shadow-[0px_3px_4px_2px_#564F5C33]"
-                                            aria-invalid={Boolean(errors.role)}
-                                        >
-                                            <SelectValue placeholder="Select your current role" />
-                                        </SelectTrigger>
-                                        <SelectContent className="max-h-72">
-                                            {ACADEMIC_ROLES.map((role) => (
-                                                <SelectItem key={role} value={role}>
-                                                    {role}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                    {errors.role && <p className="mt-1 text-xs text-red-400">{errors.role}</p>}
+                                <div className="flex items-center justify-end">
+                                    <Link
+                                        href="/auth/forgot-password"
+                                        className="text-xs font-medium text-[#716f49] hover:underline"
+                                    >
+                                        Forgot password?
+                                    </Link>
                                 </div>
 
                                 {submitError && (
@@ -296,19 +193,19 @@ export default function RegisterForm() {
                                     {isSubmitting ? (
                                         <>
                                             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                            Creating account...
+                                            Signing in...
                                         </>
                                     ) : (
-                                        "Create Account"
+                                        "Sign In"
                                     )}
                                 </Button>
 
                                 <div className="flex items-center justify-center gap-2">
-                                    <p>Already have an account?</p>
+                                    <p>Don&apos;t have an account?</p>
                                     <Link
-                                        href="/auth/login"
+                                        href="/auth/register"
                                         className="text-[#716f49] font-semibold hover:underline"
-                                    >Login</Link>
+                                    >Register</Link>
                                 </div>
                             </form>
                         )}

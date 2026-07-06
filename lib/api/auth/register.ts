@@ -1,6 +1,5 @@
 import { RegisterApiPayload, RegisterApiResponse } from "@/lib/types/auth/register";
 
-
 export class RegisterApiError extends Error {
     status: number;
 
